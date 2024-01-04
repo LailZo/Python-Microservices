@@ -1,0 +1,64 @@
+version: '3.9'
+services:
+  order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Use your actual Dockerfile name if different
+    container_name: orderservice_web
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq
+    environment:
+      - POSTGRES_NAME=microservices
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123admin
+  db:
+    image: postgres:13
+    container_name: orderservice_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=microservices
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin123admin
+  # rabbitmq:
+  #   image: rabbitmq:3.7.15-management-alpine
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  rabbitmq:
+      image: rabbitmq:3-management-alpine
+      environment:
+        - RABBITMQ_DEFAULT_USER=hellofresh
+        - RABBITMQ_DEFAULT_PASS=food
+      container_name: 'rabbitmq'
+      ports:
+        - 5672:5672
+        - 15672:15672
+      volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+  product-service:
+    image: rodolpheche/wiremock:2.23.2-alpine
+    command: --verbose
+    volumes:
+      - ./wiremock/product-service/stubs:/home/wiremock
+    ports:
+      - "8081:8080"
+  user-service:
+    image: rodolpheche/wiremock:2.23.2-alpine
+    command: --verbose
+    volumes:
+      - ./wiremock/user-service/stubs:/home/wiremock
+    ports:
+      - "8082:8080"
+volumes:
+  postgres_data:
+
+
+
